@@ -65,11 +65,11 @@ public class GhostLuckyMoney implements IXposedHookLoadPackage {
     @Override
     public void handleLoadPackage(final LoadPackageParam loadPackageParam) throws Throwable {
 
-        if (!loadPackageParam.packageName.contains("tencent.mm")) {
+
+
+        try {if (!loadPackageParam.packageName.contains("tencent.mm")) {
             return;
         }
-
-        try {
             //new message is coming here
             Class b = findClass("com.tencent.mm.booter.notification.b", loadPackageParam.classLoader);
             findAndHookMethod("com.tencent.mm.booter.notification.b", loadPackageParam.classLoader, "a", b, String.class, String.class, int.class, int.class, boolean.class, new XC_MethodHook() {
@@ -137,9 +137,18 @@ public class GhostLuckyMoney implements IXposedHookLoadPackage {
                                 log("the button text will change ,so get the text for use", button.getText());
                                 if (button.getText() != "" && button.isShown()) {
                                     hasgothongbao = false;
+                                     Random rd = new Random();
+                                   
+                                   Thread.sleep(rd.nextInt(1600));
                                     button.performClick();
+<<<<<<< HEAD
                                     log("click", "get luckymoney button");
+                                    // FIXME: 15/12/30 maybe fix the luckymoney is over,so maybe didnot close the window
+                                }else{
+//                                } else if (!button.isShown()) {
+=======
                                 } else if (!button.isShown()) {
+>>>>>>> origin/master
                                     XposedHelpers.callMethod(param.thisObject, "finish");
                                     Toast.makeText(context, "(^O^)", Toast.LENGTH_SHORT).show();
                                 }

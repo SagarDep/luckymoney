@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -14,6 +17,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -72,6 +76,25 @@ public class GhostLuckyMoney implements IXposedHookLoadPackage {
         try {if (!loadPackageParam.packageName.contains("tencent.mm")) {
             return;
         }
+
+            //com.tencent.mm.plugin.sns.ui.aw 处理 timeline 点击
+            //com.tencent.mm.plugin.sns.ui.b.d 为 timeline view item
+            findAndHookMethod("com.tencent.mm.plugin.sns.ui.ao", loadPackageParam.classLoader, "getView", int.class, View.class, ViewGroup.class, new XC_MethodHook() {
+                @Override
+                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                    log("click", "time line " + param.args[0]);
+                    super.beforeHookedMethod(param);
+                }
+
+                @Override
+                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    Object view = param.getResult();
+                    log("click", "time line view " + view);
+                    ViewGroup vg = (ViewGroup) view;
+                    checkView(vg);
+                }
+            });
+
 
             //new message is coming here
             Class b = findClass("com.tencent.mm.booter.notification.b", loadPackageParam.classLoader);
@@ -196,4 +219,22 @@ public class GhostLuckyMoney implements IXposedHookLoadPackage {
             e.printStackTrace();
         }
     }
+
+    private  void checkView(ViewGroup vg) {
+        if(vg.getChildCount() == 0){
+            return;
+        }
+        for (int i = 0; i < vg.getChildCount(); i++) {
+            View v = vg.getChildAt(i);
+            if(v instanceof ViewGroup){
+                checkView((ViewGroup) v);
+            }
+            log("click", "time line v "+v);
+            if (v instanceof TextView) {
+                log("click", "time line TextView " + ((TextView) v).getText());
+            }
+        }
+    }
+
+
 }
